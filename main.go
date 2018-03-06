@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 )
 
 /* ------------------------------------------------------------------------*/
@@ -54,13 +55,14 @@ func (s *Stack) push(element int) {
 	s.stack = append(s.stack, element)
 }
 
-func (s *Stack) pop() (element int, err error) {
+func (s *Stack) pop() (element int) {
 	if (*s).getLength() > 0 {
 		element = (*s).stack[s.getLength()-1]
 		s.stack = s.stack[:s.getLength()-1]
-		return element, nil
+		return element
 	} else {
-		return -1, errors.New("Pop() on empty evaluationStack!")
+		log.Fatal(errors.New("Pop on empty stack"))
+		return -1
 	}
 }
 
@@ -97,7 +99,7 @@ func (vm *VM) trace() {
 	opCode := opCodes[vm.code[vm.pc]]
 	args := vm.code[vm.pc+1 : vm.pc+opCode.nargs+1]
 	stack := vm.evaluationStack
-	fmt.Printf("%04d: %s %vm \t%vm\n", addr, opCode.name, args, stack)
+	fmt.Printf("%04d: %s %v \t%v\n", addr, opCode.name, args, stack)
 }
 
 func (vm *VM) Exec(c []int, trace bool) {
@@ -122,8 +124,8 @@ func (vm *VM) Exec(c []int, trace bool) {
 			vm.evaluationStack.push(val)
 
 		case ADD:
-			right, _ := vm.evaluationStack.pop()
-			left, _ := vm.evaluationStack.pop()
+			right := vm.evaluationStack.pop()
+			left := vm.evaluationStack.pop()
 			vm.evaluationStack.push(left + right)
 
 		case PRINT:
@@ -131,8 +133,8 @@ func (vm *VM) Exec(c []int, trace bool) {
 			fmt.Println(val)
 
 		case SUB:
-			right, _ := vm.evaluationStack.pop()
-			left, _ := vm.evaluationStack.pop()
+			right := vm.evaluationStack.pop()
+			left := vm.evaluationStack.pop()
 			vm.evaluationStack.push(left - right)
 
 		case HALT:
