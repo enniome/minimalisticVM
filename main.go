@@ -40,14 +40,14 @@ type Stack struct {
 	stack []int
 }
 
-func (s Stack) getLength() int {
-	return len(s.stack)
-}
-
 func newStack() Stack {
 	return Stack{
 		stack: []int{},
 	}
+}
+
+func (s Stack) getLength() int {
+	return len(s.stack)
 }
 
 func (s *Stack) push(element int) {
@@ -78,30 +78,37 @@ func (s *Stack) peek() (element int, err error) {
 /* ------------------------------------------------------------------------*/
 
 type VM struct {
-	code []int
-	pc   int // Program counter
-
+	code            []int
+	pc              int // Program counter
 	evaluationStack Stack
 }
 
+func newVM() VM {
+	return VM{
+		code:            []int{},
+		pc:              0,
+		evaluationStack: newStack(),
+	}
+}
+
+// Private function, that can be activated by Exec call, useful for debugging
 func (vm *VM) trace() {
 	addr := vm.pc
 	opCode := opCodes[vm.code[vm.pc]]
 	args := vm.code[vm.pc+1 : vm.pc+opCode.nargs+1]
 	stack := vm.evaluationStack
-
 	fmt.Printf("%04d: %s %vm \t%vm\n", addr, opCode.name, args, stack)
 }
 
-func (vm *VM) Exec(c []int) {
-	vm.evaluationStack = newStack()
+func (vm *VM) Exec(c []int, trace bool) {
 
 	vm.code = c
-	vm.pc = 0
 
 	// Infinite Loop until break called
 	for {
-		vm.trace()
+		if trace {
+			vm.trace()
+		}
 
 		// Fetch
 		opCode := vm.code[vm.pc]
@@ -113,17 +120,21 @@ func (vm *VM) Exec(c []int) {
 			val := vm.code[vm.pc]
 			vm.pc++
 			vm.evaluationStack.push(val)
+
 		case ADD:
 			right, _ := vm.evaluationStack.pop()
 			left, _ := vm.evaluationStack.pop()
 			vm.evaluationStack.push(left + right)
+
 		case PRINT:
 			val, _ := vm.evaluationStack.peek()
 			fmt.Println(val)
+
 		case SUB:
 			right, _ := vm.evaluationStack.pop()
 			left, _ := vm.evaluationStack.pop()
 			vm.evaluationStack.push(left - right)
+
 		case HALT:
 			return
 		}
@@ -147,8 +158,6 @@ func main() {
 		HALT,  //3
 	}
 
-	fmt.Println(code)
-
-	vm := &VM{}
-	vm.Exec(code)
+	vm := newVM()
+	vm.Exec(code, true)
 }
